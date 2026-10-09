@@ -38,8 +38,10 @@ function validateTelegramInitData(initData, botToken) {
 
   const authDate = Number(params.get("auth_date") || 0);
 
-  // 24 ঘণ্টার বেশি পুরোনো initData গ্রহণ নয়
-  if (!authDate || Math.floor(Date.now() / 1000) - authDate > 86400) {
+  if (
+    !authDate ||
+    Math.floor(Date.now() / 1000) - authDate > 86400
+  ) {
     return null;
   }
 
@@ -48,7 +50,12 @@ function validateTelegramInitData(initData, botToken) {
   if (!userRaw) return null;
 
   try {
-    return JSON.parse(userRaw);
+    const user = JSON.parse(userRaw);
+
+    return {
+      user,
+      startParam: params.get("start_param") || ""
+    };
   } catch {
     return null;
   }
@@ -64,14 +71,12 @@ exports.handler = async function (event) {
 
   try {
     const body = JSON.parse(event.body || "{}");
-
     const initData = String(body.initData || "");
-    const referrerId = String(body.referrer_id || "");
 
-    if (!initData || !referrerId) {
+    if (!initData) {
       return json({
         ok: false,
-        message: "initData and referrer_id are required"
+        message: "Telegram initData required"
       }, 400);
     }
 
@@ -84,32 +89,45 @@ exports.handler = async function (event) {
       }, 500);
     }
 
-    const telegramUser = validateTelegramInitData(
+    const verified = validateTelegramInitData(
       initData,
       botToken
     );
 
-    if (!telegramUser?.id) {
+    if (!verified?.user?.id) {
       return json({
         ok: false,
         message: "Invalid Telegram authentication"
       }, 401);
     }
 
-    const referredId = String(telegramUser.id);
+    const referredId = Number(verified.user.id);
+    const startParam = verified.startParam;
 
-    const referrer = Number(referrerId);
-    const referred = Number(referredId);
+    if (!startParam.startsWith("ref_")) {
+      return json({
+        ok: true,
+        new_referral: false,
+        reward: 0,
+        message: "No referral parameter"
+      });
+    }
 
-    if (!Number.isSafeInteger(referrer) ||
-        !Number.isSafeInteger(referred)) {
+    const referrerId = Number(
+      startParam.substring(4)
+    );
+
+    if (
+      !Number.isSafeInteger(referrerId) ||
+      !Number.isSafeInteger(referredId)
+    ) {
       return json({
         ok: false,
-        message: "Invalid Telegram ID"
+        message: "Invalid referral ID"
       }, 400);
     }
 
-    if (referrer === referred) {
+    if (referrerId === referredId) {
       return json({
         ok: false,
         message: "Self referral is not allowed"
@@ -121,8 +139,8 @@ exports.handler = async function (event) {
       {
         method: "POST",
         body: JSON.stringify({
-          p_referrer_id: referrer,
-          p_referred_id: referred
+          p_referrer_id: referrerId,
+          p_referred_id: referredId
         })
       }
     );
