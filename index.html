@@ -1080,59 +1080,87 @@ function watchRegular(i){
 
 function boost(){
 
-  if(
-    Date.now() <
-    data.boostUntil
-  ){
+  if(Date.now() < data.boostUntil){
 
-    alert(
-      'Boost is already active.'
-    );
-
-    return;
-  }
-
-
-  if(data.boostAds < 10){
-
-    window.open(
-      'https://omg10.com/4/7161418',
-      '_blank'
-    );
-
-
-    data.boostAds++;
-
-
-    if(
-      data.boostAds === 10
-    ){
-
-      data.boostUntil =
-        Date.now() +
-        12 * 60 * 60 * 1000;
-
-
-      data.boostAds = 0;
-
-
-      alert(
-        'Boost activated: 50 ADSK/hour for 12 hours.'
-      );
-
-    }
-
-
-    save();
-
-    render();
-
+    alert('Boost is already active.');
     return;
 
   }
 
+  if(data.boostAds >= 10){
+    return;
+  }
+
+  if(typeof show_11947538 !== 'function'){
+    alert('Ad is loading. Please try again.');
+    return;
+  }
+
+  show_11947538('pop')
+    .then(() => {
+
+      // Ad successfully completed
+      data.boostAds++;
+
+      if(data.boostAds === 10){
+
+        data.boostUntil =
+          Date.now() +
+          12 * 60 * 60 * 1000;
+
+        data.boostAds = 0;
+
+        alert(
+          'Boost activated: 50 ADSK/hour for 12 hours.'
+        );
+
+      }
+
+      save();
+      render();
+
+    })
+    .catch((e) => {
+
+      console.error('Rewarded Popup error:', e);
+
+    });
+}function watchRegular(i){
+
+  if(i !== data.regularAds + 1){
+    return;
+  }
+
+  if(data.regularAds >= 10 && !canRegular()){
+    return;
+  }
+
+  if(typeof show_11947538 !== 'function'){
+    alert('Ad is loading. Please try again.');
+    return;
+  }
+
+  show_11947538()
+    .then(() => {
+
+      // Ad successfully completed
+      data.balance += 10;
+      data.regularAds++;
+
+      if(data.regularAds >= 10){
+        data.lastRegularAd = Date.now();
+      }
+
+      save();
+      render();
+
+    })
+    .catch((e) => {
+
+      console.error('Rewarded Interstitial error:', e);
+
+    });
 }
-
 
 /* =========================
    WITHDRAWAL ADS
