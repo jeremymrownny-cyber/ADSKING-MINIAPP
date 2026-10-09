@@ -1168,33 +1168,37 @@ function boost(){
 
 function watchWithdrawalAd(){
 
-  if(
-    data.withdrawAds >= 100
-  ){
+  if(data.withdrawAds >= 100){
 
-    alert(
-      'Withdrawal ads complete.'
-    );
-
+    alert('Withdrawal ads complete.');
     return;
 
   }
 
+  if(typeof show_11947538 !== 'function'){
+    alert('Ad is loading. Please try again.');
+    return;
+  }
 
-  window.open(
-    'https://omg10.com/4/7161418',
-    '_blank'
-  );
+  show_11947538()
+    .then(() => {
 
+      // Ad successfully completed
+      data.withdrawAds++;
 
-  data.withdrawAds++;
+      save();
+      render();
 
-  save();
+    })
+    .catch((e) => {
 
-  render();
+      console.error(
+        'Withdrawal Rewarded Ad error:',
+        e
+      );
 
+    });
 }
-
 
 /* =========================
    WITHDRAWAL
