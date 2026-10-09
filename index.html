@@ -734,16 +734,14 @@ async function verifyJoin(){
    UNLOCK APP
 ========================= */
 
-function unlock(){
+async function unlock(){
 
-  document.getElementById('gate').style.display =
-    'none';
+  document.getElementById('gate').style.display='none';
+  document.getElementById('mainApp').style.display='block';
 
-  document.getElementById('mainApp').style.display =
-    'block';
+  await syncUserToDatabase();
 
   render();
-
 }
 
 
