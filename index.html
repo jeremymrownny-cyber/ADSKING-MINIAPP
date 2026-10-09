@@ -1224,52 +1224,93 @@ function shareReferral(){
    LEADERBOARD
 ========================= */
 
-function renderLeaderboard(){
+async function renderLeaderboard(){
 
-  let h = '';
+  const box = document.getElementById('leaderboard');
 
+  box.innerHTML = `
+    <div class="muted" style="text-align:center;padding:20px">
+      Loading leaderboard...
+    </div>
+  `;
 
-  for(
-    let i = 1;
-    i <= 30;
-    i++
-  ){
+  try {
 
-    let name =
-      i === 1
-        ? (user.first_name || 'You')
-        : 'ADSKING User ' + i;
+    const r = await fetch(
+      '/.netlify/functions/leaderboard'
+    );
 
+    const j = await r.json();
 
-    let bal =
-      i === 1
-        ? data.balance
-        : Math.max(
-            0,
-            10000 - i * 173
-          );
+    if (!j.ok) {
+      throw new Error(
+        j.message || 'Leaderboard error'
+      );
+    }
 
+    const list = j.leaderboard || [];
 
-    h += `
-      <div class="rankrow">
+    if (!list.length) {
 
-        <strong>#${i}</strong>
+      box.innerHTML = `
+        <div class="muted" style="text-align:center;padding:20px">
+          No users yet.
+        </div>
+      `;
 
-        <span>${name}</span>
+      return;
+    }
 
-        <strong>
-          ${bal.toFixed(0)}
-        </strong>
+    let h = '';
 
+    list.forEach((u) => {
+
+      const name =
+        u.username
+          ? '@' + u.username
+          : (u.first_name || 'ADSKING User');
+
+      h += `
+        <div class="rankrow">
+
+          <strong>#${u.rank}</strong>
+
+          <span>${escapeHtml(name)}</span>
+
+          <strong>
+            ${Number(u.balance || 0).toFixed(0)}
+          </strong>
+
+        </div>
+      `;
+
+    });
+
+    box.innerHTML = h;
+
+  } catch (e) {
+
+    console.error(e);
+
+    box.innerHTML = `
+      <div class="status" style="text-align:center;padding:20px">
+        Leaderboard could not be loaded.
       </div>
     `;
 
   }
 
+}
 
-  document.getElementById(
-    'leaderboard'
-  ).innerHTML = h;
+
+function escapeHtml(text){
+
+  return String(text)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
 
 }
 
