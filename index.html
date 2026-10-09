@@ -639,26 +639,39 @@ function openChannel(){
    VERIFY TELEGRAM MEMBERSHIP
 ========================= */
 
-async function verifyJoin(){
+async function syncUserToDatabase(){
 
-  const s =
-    document.getElementById('gateStatus');
-
-  /*
-   * Mini App অবশ্যই Telegram-এর ভিতর থেকে
-   * open হতে হবে।
-   */
-
-  if (
-    !TG ||
-    !TG.initDataUnsafe?.user?.id
-  ){
-
-    s.textContent =
-      'Please open ADSKING from Telegram.';
-
-    return;
+  if (!TG || !TG.initDataUnsafe?.user?.id) {
+    return false;
   }
+
+  const u = TG.initDataUnsafe.user;
+
+  try {
+    const r = await fetch('/.netlify/functions/user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        telegram_id: u.id,
+        username: u.username || '',
+        first_name: u.first_name || ''
+      })
+    });
+
+    const j = await r.json();
+    console.log('User sync:', j);
+
+    return j.ok === true;
+
+  } catch (e) {
+    console.error('User sync error:', e);
+    return false;
+  }
+}
+
+async function verifyJoin(){
 
 
   /*
@@ -734,16 +747,14 @@ async function verifyJoin(){
    UNLOCK APP
 ========================= */
 
-function unlock(){
+async function unlock(){
 
-  document.getElementById('gate').style.display =
-    'none';
+  document.getElementById('gate').style.display='none';
+  document.getElementById('mainApp').style.display='block';
 
-  document.getElementById('mainApp').style.display =
-    'block';
+  await syncUserToDatabase();
 
   render();
-
 }
 
 
