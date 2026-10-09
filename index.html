@@ -806,11 +806,9 @@ function showPage(id,btn){
       x => x.classList.remove('active')
     );
 
-
   document
     .getElementById(id)
     .classList.add('active');
-
 
   document
     .querySelectorAll('.nav button')
@@ -818,14 +816,32 @@ function showPage(id,btn){
       x => x.classList.remove('active')
     );
 
-
   btn.classList.add('active');
 
   render();
 
+  /* Monetag In-App Interstitial */
+  if(typeof show_11947538 === 'function'){
+
+    show_11947538({
+      type: 'inApp',
+      inAppSettings: {
+        frequency: 2,
+        capping: 0,
+        interval: 30,
+        timeout: 5,
+        everyPage: false
+      }
+    }).catch((e) => {
+      console.error(
+        'In-App Interstitial error:',
+        e
+      );
+    });
+
+  }
+
 }
-
-
 /* =========================
    RENDER
 ========================= */
