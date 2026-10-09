@@ -1044,30 +1044,36 @@ function watchRegular(i){
     return;
   }
 
-  // 10 ads completed হলে নতুন cycle শুরু হওয়ার আগে lock
   if(data.regularAds >= 10 && !canRegular()){
     return;
   }
 
-  window.open(
-    'https://omg10.com/4/7161418',
-    '_blank'
-  );
-
-  data.balance += 10;
-  data.regularAds++;
-
-  // 10th ad complete হলে 30-minute cooldown শুরু
-  if(data.regularAds >= 10){
-
-    data.lastRegularAd = Date.now();
-
+  if(typeof show_11947538 !== 'function'){
+    alert('Ad is loading. Please try again.');
+    return;
   }
 
-  save();
-  render();
-}
+  show_11947538()
+    .then(() => {
 
+      // Ad successfully completed
+      data.balance += 10;
+      data.regularAds++;
+
+      if(data.regularAds >= 10){
+        data.lastRegularAd = Date.now();
+      }
+
+      save();
+      render();
+
+    })
+    .catch((e) => {
+
+      console.error('Rewarded Interstitial error:', e);
+
+    });
+}
 /* =========================
    BOOST
 ========================= */
