@@ -921,45 +921,57 @@ function renderTasks(){
 
   let h = '';
 
+  const cycleLocked =
+    data.lastRegularAd > 0 &&
+    data.regularAds >= 10 &&
+    !canRegular();
 
-  for(
-    let i = 1;
-    i <= 10;
-    i++
-  ){
+  for(let i = 1; i <= 10; i++){
 
-    const done =
-      i <= data.regularAds;
+    const done = i <= data.regularAds;
+    const next = i === data.regularAds + 1;
 
+    let buttonText = 'LOCKED';
+    let disabled = true;
+    let cls = 'btn muted';
+
+    if(cycleLocked){
+
+      buttonText = taskTimer();
+
+    } else if(done){
+
+      buttonText = 'DONE';
+
+    } else if(next){
+
+      buttonText = 'WATCH';
+      disabled = false;
+      cls = 'btn green';
+
+    }
 
     h += `
       <div class="card task">
 
         <div>
           <h3>📺 Ad ${i}</h3>
-
-          <div class="muted">
-            +10 ADSK
-          </div>
+          <div class="muted">+10 ADSK</div>
         </div>
 
         <button
-          class="btn ${done ? '' : 'green'}"
-          ${done || !canRegular() ? 'disabled' : ''}
+          class="${cls}"
+          ${disabled ? 'disabled' : ''}
           onclick="watchRegular(${i})"
         >
-          ${done ? 'DONE' : taskTimer()}
+          ${buttonText}
         </button>
 
       </div>
     `;
-
   }
 
-
-  document.getElementById('taskList')
-    .innerHTML = h;
-
+  document.getElementById('taskList').innerHTML = h;
 }
 
 
@@ -969,33 +981,33 @@ function renderTasks(){
 
 function watchRegular(i){
 
-  if(
-    i !== data.regularAds + 1 ||
-    !canRegular()
-  )
+  if(i !== data.regularAds + 1){
     return;
+  }
 
+  // 10 ads completed হলে নতুন cycle শুরু হওয়ার আগে lock
+  if(data.regularAds >= 10 && !canRegular()){
+    return;
+  }
 
   window.open(
     'https://omg10.com/4/7161418',
     '_blank'
   );
 
-
   data.balance += 10;
-
   data.regularAds++;
 
-  data.lastRegularAd =
-    Date.now();
+  // 10th ad complete হলে 30-minute cooldown শুরু
+  if(data.regularAds >= 10){
 
+    data.lastRegularAd = Date.now();
+
+  }
 
   save();
-
   render();
-
 }
-
 
 /* =========================
    BOOST
