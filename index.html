@@ -964,11 +964,23 @@ function taskTimer(){
 
 function renderTasks(){
 
+  // 10 ads completed + 30 minute cooldown finished
+  if (
+    data.regularAds >= 10 &&
+    data.lastRegularAd > 0 &&
+    canRegular()
+  ) {
+    data.regularAds = 0;
+    data.lastRegularAd = 0;
+    save();
+    return;
+  }
+
   let h = '';
 
   const cycleLocked =
-    data.lastRegularAd > 0 &&
     data.regularAds >= 10 &&
+    data.lastRegularAd > 0 &&
     !canRegular();
 
   for(let i = 1; i <= 10; i++){
@@ -998,7 +1010,6 @@ function renderTasks(){
 
     h += `
       <div class="card task">
-
         <div>
           <h3>📺 Ad ${i}</h3>
           <div class="muted">+10 ADSK</div>
@@ -1011,7 +1022,6 @@ function renderTasks(){
         >
           ${buttonText}
         </button>
-
       </div>
     `;
   }
